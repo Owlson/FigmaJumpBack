@@ -25,63 +25,50 @@
       color: rgba(0, 0, 0, 0.5);
     }
     #clearBtn {
-      all: unset;
-      cursor: pointer;
-      font-size: 16px;
-      padding: 4px;
+      all: unset; cursor: pointer; font-size: 16px; padding: 4px;
     }
-    #clearBtn:hover {
-      background: #f0f0f0;
-      border-radius: 4px;
-    }
+    #clearBtn:hover { background: #f0f0f0; border-radius: 4px; }
 
     #historyList {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
+      list-style: none; padding: 0; margin: 0;
+      overflow-y: auto; overflow-x: hidden;
       max-height: calc(100% - 40px);
     }
     li { margin-bottom: 4px; }
 
     button.entry {
-      all: unset;
-      display: flex;
-      align-items: flex-start;
-      width: 274px;
-      padding: 4px 6px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      cursor: pointer;
-      overflow: hidden;
+      all: unset; display: flex; align-items: flex-start;
+      position: relative;
+      width: 274px; padding: 4px 6px;
+      border: 1px solid #ccc; border-radius: 4px;
+      cursor: pointer; overflow: hidden;
     }
-    button.entry:hover {
-      background: #f0f0f0;
-    }
+    button.entry:hover { background: #f0f0f0; }
 
-    .entry-icon {
-      flex: 0 0 20px;
-      margin-right: 6px;
-    }
-    .entry-content {
-      flex: 1;
-      overflow: hidden;
-    }
+    .entry-icon { flex: 0 0 20px; margin-right: 6px; }
+    .entry-content { flex: 1; overflow: hidden; }
     .entry-page {
-      font-size: 12px;
-      font-weight: bold;
-      margin: 0 0 2px;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
+      font-size: 12px; font-weight: bold; margin: 0 0 2px;
+      white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
     }
     .entry-frame {
+      font-size: 14px; margin: 0;
+      white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
+    }
+
+    /* кнопка удаления */
+    .remove-btn {
+      display: none;
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      all: unset;
+      cursor: pointer;
       font-size: 14px;
-      margin: 0;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
+      color: #999;
+    }
+    button.entry:hover .remove-btn {
+      display: block;
     }
   </style>
 </head>
@@ -118,8 +105,13 @@
       parent.postMessage({ pluginMessage: { type: 'navigateTo', index: i } }, '*');
     }
 
+    function removeEntry(i) {
+      parent.postMessage({ pluginMessage: { type: 'removeEntry', index: i } }, '*');
+    }
+
     window.onload = () => {
       parent.postMessage({ pluginMessage: { type: 'getHistory' } }, '*');
+
       window.onmessage = e => {
         const msg = e.data.pluginMessage;
         if (msg.type === 'history') {
@@ -138,13 +130,22 @@
               `<div class="entry-content">
                  <p class="entry-page">${entry.pageName}</p>
                  <p class="entry-frame">${entry.nodeName || ''}</p>
-               </div>`;
+               </div>` +
+              `<button class="remove-btn" title="Remove">&times;</button>`;
+            // на клик по записи — навигация
             btn.onclick = () => navigate(idx);
+            // на клик по крестику — удалить
+            const removeBtn = btn.querySelector('.remove-btn');
+            removeBtn.addEventListener('click', e => {
+              e.stopPropagation();
+              removeEntry(idx);
+            });
             li.appendChild(btn);
             list.appendChild(li);
           });
         }
       };
+
       document.getElementById('clearBtn').onclick = () =>
         parent.postMessage({ pluginMessage: { type: 'clearHistory' } }, '*');
     };
