@@ -1,18 +1,14 @@
 {
-  "name": "Page History Navigator",
+  "name": "FigmaJumpBack",
   "id": "1534139231378617797",
   "api": "1.0.0",
   "main": "code.js",
+  "ui": "ui.html",
   "capabilities": [],
   "enableProposedApi": false,
+  "editorType": ["figma"],
   "documentAccess": "dynamic-page",
-  "editorType": [
-    "figma"
-  ],
-  "ui": "ui.html",
   "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
+    "allowedDomains": ["owlson.github.io"]
   }
 }
