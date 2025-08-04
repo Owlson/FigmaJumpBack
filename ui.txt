@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Page History Navigator</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 16px;
+      }
+      ul {
+        padding-left: 0;
+        list-style: none;
+      }
+      li {
+        margin-bottom: 12px;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 8px;
+      }
+      button {
+        margin-left: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Navigation History</h2>
+    <ul id="historyList">Loading...</ul>
+    <button id="clearBtn">🧹 Clear History</button>
+
+    <script>
+      // Запрашиваем историю из плагина
+      parent.postMessage({ pluginMessage: { type: 'getHistory' } }, '*');
+
+      // Обработка ответа от code.ts
+      window.onmessage = (event) => {
+        const msg = event.data.pluginMessage;
+        if (msg.type === 'history') {
+          const list = document.getElementById('historyList');
+          list.innerHTML = '';
+
+          if (msg.history.length === 0) {
+            list.innerHTML = '<li><i>History is empty.</i></li>';
+            return;
+          }
+
+          msg.history.forEach((entry, index) => {
+            const li = document.createElement('li');
+
+            const time = new Date(entry.timestamp).toLocaleTimeString();
+            const nodeText = entry.nodeName ? ` > ${entry.nodeName}` : '';
+            li.innerHTML = `<strong>${time}</strong> — ${entry.pageName}${nodeText}
+              <button onclick="navigate(${index})">Go</button>`;
+
+            list.appendChild(li);
+          });
+        }
+      };
+
+      function navigate(index) {
+        parent.postMessage({ pluginMessage: { type: 'navigateTo', index } }, '*');
+      }
+
+      document.getElementById('clearBtn').onclick = () => {
+        parent.postMessage({ pluginMessage: { type: 'clearHistory' } }, '*');
+      };
+    </script>
+  </body>
+</html>
