@@ -1,4 +1,3 @@
-<!-- ui.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,68 +10,109 @@
       font-family: sans-serif;
     }
     body {
-      display: flex; flex-direction: column;
+      display: flex;
+      flex-direction: column;
       padding: 8px;
       box-sizing: border-box;
       position: relative;
-      overflow: hidden;
     }
+
     .header {
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 8px;
     }
     .title {
-      font-size: 16px; color: rgba(0,0,0,0.5); margin: 0;
+      font-size: 16px;
+      color: rgba(0,0,0,0.5);
+      margin: 0;
     }
     .controls button {
-      all: unset; margin-left: 8px;
-      cursor: pointer; font-size: 16px; padding: 4px;
+      all: unset;
+      margin-left: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
     }
     .controls button:hover {
-      background: #f0f0f0; border-radius: 4px;
+      background: #f0f0f0;
+      border-radius: 4px;
     }
 
     #historyList {
       flex: 1;
-      list-style: none; padding: 0; margin: 0;
-      overflow-y: auto; overflow-x: hidden;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
     li { margin-bottom: 4px; }
 
     button.entry {
-      all: unset; display: flex; align-items: flex-start;
+      all: unset;
+      display: flex;
+      align-items: flex-start;
       position: relative;
-      width: 100%; /* full width of 320px - padding */
+      width: 100%;
+      box-sizing: border-box;
       padding: 4px 6px;
-      border: 1px solid #ccc; border-radius: 4px;
-      cursor: pointer; overflow: hidden;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      overflow: hidden;
     }
     button.entry:hover { background: #f0f0f0; }
 
-    .entry-icon { flex: 0 0 20px; margin-right: 6px; }
-    .entry-content { flex: 1; overflow: hidden; }
+    .entry-icon {
+      flex: 0 0 20px;
+      margin-right: 6px;
+    }
+    .entry-content {
+      flex: 1;
+      overflow: hidden;
+    }
     .entry-page {
-      font-size: 12px; font-weight: bold; margin: 0 0 2px;
-      white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
+      font-size: 12px;
+      font-weight: bold;
+      margin: 0 0 2px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
     }
     .entry-frame {
-      font-size: 14px; margin: 0;
-      white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
+      font-size: 14px;
+      margin: 0;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
     }
+
     .remove-btn {
-      display: none; position: absolute;
+      display: none;
+      position: absolute;
       top: 4px; right: 6px;
-      all: unset; cursor: pointer; font-size: 14px; color: #999;
+      all: unset;
+      cursor: pointer;
+      font-size: 14px;
+      color: #999;
     }
     button.entry:hover .remove-btn {
       display: block;
     }
 
-    /* resize handle */
+    /* видимый ресайз-хэндл */
     #resizeHandle {
-      height: 6px; cursor: ns-resize;
-      background: transparent;
-      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 6px;
+      cursor: ns-resize;
+      background: rgba(0,0,0,0.1);
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      transition: background 0.2s;
+    }
+    #resizeHandle:hover {
+      background: rgba(0,0,0,0.2);
     }
   </style>
 </head>
@@ -84,9 +124,11 @@
       <button id="clearBtn" title="Clear history">🧹</button>
     </div>
   </div>
+
   <ul id="historyList">
     <li><i>Loading…</i></li>
   </ul>
+
   <div id="resizeHandle"></div>
 
   <script>
@@ -105,25 +147,29 @@
     };
 
     let locked = false;
+
     function getIconImg(type) {
       const url = ICON_URLS[type] || ICON_URLS.DEFAULT;
       return `<img class="entry-icon" src="${url}" width="20" height="20" alt="${type}">`;
     }
+
     function navigate(i) {
       parent.postMessage({ pluginMessage: { type: 'navigateTo', index: i } }, '*');
     }
+
     function removeEntry(i) {
       parent.postMessage({ pluginMessage: { type: 'removeEntry', index: i } }, '*');
     }
+
     function toggleLock() {
       locked = !locked;
       lockBtn.textContent = locked ? '🔒' : '🔓';
       parent.postMessage({ pluginMessage: { type: 'toggleLock', locked } }, '*');
     }
 
-    // resize logic
+    // resize handle
     const handle = document.getElementById('resizeHandle');
-    let isResizing = false, startY=0, startH=0;
+    let isResizing = false, startY = 0, startH = 0;
     handle.addEventListener('mousedown', e => {
       isResizing = true;
       startY = e.clientY;
@@ -136,12 +182,13 @@
     });
     window.addEventListener('mouseup', () => { isResizing = false; });
 
+    // initial requests
     window.onload = () => {
       parent.postMessage({ pluginMessage: { type: 'getHistory' } }, '*');
       parent.postMessage({ pluginMessage: { type: 'getLockState' } }, '*');
     };
 
-    // handle incoming messages
+    // handle messages from code
     window.onmessage = e => {
       const msg = e.data.pluginMessage;
       if (msg.type === 'history') {
@@ -164,7 +211,10 @@
             `<button class="remove-btn" title="Remove">&times;</button>`;
           btn.onclick = () => navigate(idx);
           const r = btn.querySelector('.remove-btn');
-          r.addEventListener('click', e => { e.stopPropagation(); removeEntry(idx); });
+          r.addEventListener('click', e => {
+            e.stopPropagation();
+            removeEntry(idx);
+          });
           li.appendChild(btn);
           list.appendChild(li);
         });
@@ -176,7 +226,7 @@
     };
 
     const lockBtn = document.getElementById('lockBtn');
-    lockBtn.addEventListener('click', toggleLock);
+    lockBtn.onclick = toggleLock;
     document.getElementById('clearBtn').onclick = () =>
       parent.postMessage({ pluginMessage: { type: 'clearHistory' } }, '*');
   </script>
