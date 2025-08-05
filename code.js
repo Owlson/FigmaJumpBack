@@ -1,51 +1,64 @@
 // code.js
 (function() {
+  // Показываем UI с начальным размером
   figma.showUI(__html__, { width: 320, height: 400 });
 
   const HISTORY_KEY = 'navHistory';
   const MAX_ENTRIES = 20;
   let locked = false;
 
+  // Получить историю из Client Storage
   async function getHistory() {
     const raw = await figma.clientStorage.getAsync(HISTORY_KEY);
     return Array.isArray(raw) ? raw : [];
   }
 
+  // Сохранить историю в Client Storage
   async function saveHistory(arr) {
     await figma.clientStorage.setAsync(HISTORY_KEY, arr);
   }
 
+  // Добавить запись в историю, если не заблокировано
   async function addEntry(entry) {
-    // если залочено — просто возвращаем текущее без добавления
-    if (locked) return getHistory();
+    if (locked) {
+      return getHistory();
+    }
     let history = await getHistory();
+    // Удаляем дубликаты
     history = history.filter(e =>
       !(e.pageId === entry.pageId && e.nodeId === entry.nodeId)
     );
     history.unshift(entry);
-    history = history.slice(0, MAX_ENTRIES);
+    // Ограничиваем длину
+    if (history.length > MAX_ENTRIES) {
+      history = history.slice(0, MAX_ENTRIES);
+    }
     await saveHistory(history);
     return history;
   }
 
+  // Обновить UI-панель с текущей историей
   async function updateHistoryUI() {
     const history = await getHistory();
     figma.ui.postMessage({ type: 'history', history });
   }
 
+  // Отправить UI состояние lock
   function sendLockState() {
     figma.ui.postMessage({ type: 'lockState', locked });
   }
 
-  // 🚀 Инициализация
+  // Инициализация при запуске плагина
   (async function init() {
-    const sel = figma.currentPage.selection[0] || null;
+    const sel = figma.currentPage.selection.length > 0
+      ? figma.currentPage.selection[0]
+      : null;
     const entry = {
       pageId:    figma.currentPage.id,
       pageName:  figma.currentPage.name,
-      nodeId:    sel?.id,
-      nodeName:  sel?.name,
-      nodeType:  sel?.type || 'PAGE',
+      nodeId:    sel ? sel.id   : undefined,
+      nodeName:  sel ? sel.name : undefined,
+      nodeType:  sel ? sel.type : 'PAGE',
       timestamp: new Date().toISOString()
     };
     await addEntry(entry);
@@ -53,35 +66,40 @@
     sendLockState();
   })();
 
-  // 🔄 При каждом изменении выделения
+  // При каждом изменении выделения пользователя
   figma.on('selectionchange', async () => {
-    const sel = figma.currentPage.selection[0] || null;
+    const sel = figma.currentPage.selection.length > 0
+      ? figma.currentPage.selection[0]
+      : null;
     const entry = {
       pageId:    figma.currentPage.id,
       pageName:  figma.currentPage.name,
-      nodeId:    sel?.id,
-      nodeName:  sel?.name,
-      nodeType:  sel?.type || 'PAGE',
+      nodeId:    sel ? sel.id   : undefined,
+      nodeName:  sel ? sel.name : undefined,
+      nodeType:  sel ? sel.type : 'PAGE',
       timestamp: new Date().toISOString()
     };
     await addEntry(entry);
     await updateHistoryUI();
   });
 
-  // 💬 Сообщения из UI
+  // Обработка сообщений из UI
   figma.ui.onmessage = async msg => {
     switch (msg.type) {
       case 'getHistory':
-        return updateHistoryUI();
+        await updateHistoryUI();
+        break;
 
       case 'getLockState':
-        return sendLockState();
+        sendLockState();
+        break;
 
       case 'toggleLock':
         locked = msg.locked;
-        return sendLockState();
+        sendLockState();
+        break;
 
-      case 'navigateTo':
+      case 'navigateTo': {
         const history = await getHistory();
         const entry = history[msg.index];
         if (!entry) return;
@@ -98,22 +116,26 @@
             figma.viewport.scrollAndZoomIntoView([node]);
           }
         }
-        return;
+        break;
+      }
 
-      case 'removeEntry':
-        let h = await getHistory();
-        h.splice(msg.index, 1);
-        await saveHistory(h);
-        return updateHistoryUI();
+      case 'removeEntry': {
+        const history = await getHistory();
+        history.splice(msg.index, 1);
+        await saveHistory(history);
+        await updateHistoryUI();
+        break;
+      }
 
       case 'clearHistory':
         await saveHistory([]);
-        return updateHistoryUI();
+        await updateHistoryUI();
+        break;
 
       case 'resize':
-        // только вертикальный ресайз
+        // Изменяем только высоту окна плагина
         figma.ui.resize(320, msg.height);
-        return;
+        break;
     }
   };
 })();
