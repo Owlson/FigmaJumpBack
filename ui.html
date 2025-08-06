@@ -1,160 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <title>FigmaJumpBack</title>
   <style>
-    /* --- стили опущены для краткости; скопируй их из предыдущей версии --- */
+    html, body { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; height:100%; }
+    body { position: relative; display:flex; flex-direction:column; padding:8px; overflow:hidden; }
+
+    /* ——— Subheader ——— */
+    .subheader {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:8px 0;
+    }
+    .subheader .label {
+      font-size:12px;
+      font-weight:400;
+      color:#808080;
+      text-transform:uppercase;
+    }
+    .subheader .controls {
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .subheader .controls img {
+      width:20px; height:20px;
+      cursor:pointer;
+      opacity:0.8;
+    }
+    .subheader .controls img:hover { opacity:1; }
+
+    /* ——— List ——— */
+    #historyList {
+      flex:1;
+      margin:0;
+      padding:0;
+      list-style:none;
+      overflow-y:auto;
+      overflow-x:hidden;
+    }
+    #historyList li { margin-bottom:8px; }
+
+    /* ——— Entry ——— */
+    .entry {
+      all:unset;
+      display:flex;
+      align-items:center;
+      width:100%;
+      padding:8px;
+      border:1px solid #ccc;
+      border-radius:4px;
+      cursor:pointer;
+      box-sizing:border-box;
+    }
+    .entry.selected {
+      background: rgba(131,172,255,0.05);
+      border-color: #83ACFF;
+    }
+    .entry-icon {
+      width:20px; height:20px; margin-right:8px;
+    }
+    .entry-content {
+      flex:1; overflow:hidden;
+    }
+    .entry-title {
+      font-size:12px; font-weight:500; margin:0;
+      white-space:nowrap; text-overflow:ellipsis; overflow:hidden;
+    }
+    .entry-sub {
+      font-size:10px; font-weight:500; margin:0; color:#666;
+      white-space:nowrap; text-overflow:ellipsis; overflow:hidden;
+    }
+    .remove-icon {
+      font-size:16px;
+      line-height:1;
+      color:#666;
+      margin-left:8px;
+      cursor:pointer;
+      opacity:0.5;
+      user-select: none;
+    }
+    .entry:hover .remove-icon { opacity:1; }
+
+    /* ——— Resize Handle ——— */
+    #resizeHandle {
+      position:absolute;
+      bottom:0; left:0; right:0;
+      height:6px;
+      background:transparent;
+      cursor:ns-resize;
+    }
+    #resizeHandle:hover { background:rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-left">
-      <div class="logo-icon" data-icon="logo"></div>
-      <div class="logo-text">FigmaJumpBack</div>
-    </div>
-    <div class="header-right">
-      <!-- заменили <img> на <div> -->
-      <div id="lockBtn" data-icon="lock-closed" title="Lock history"></div>
-      <div id="clearBtn" data-icon="clear" title="Clear history"></div>
-    </div>
-  </div>
 
-  <!-- SUBHEADER -->
+  <!-- Subheader -->
   <div class="subheader">
-    <div>Recent</div>
+    <div class="label">Recent</div>
+    <div class="controls">
+      <img id="lockBtn" data-icon="lock-closed" title="Lock history"/>
+      <img id="clearBtn" data-icon="clear" title="Clear history"/>
+    </div>
   </div>
 
-  <!-- HISTORY LIST -->
+  <!-- History list -->
   <ul id="historyList">
     <li><i>Loading…</i></li>
   </ul>
 
-  <!-- RESIZE HANDLE -->
+  <!-- Resize handle -->
   <div id="resizeHandle"></div>
 
   <script>
     const CDN = "https://owlson.github.io/FigmaJumpBack/assets/icons";
-    const ICON_URLS = {
-      logo:        `${CDN}/logo.svg`,
+    const ICONS = {
       "lock-closed": `${CDN}/lock-closed.svg`,
       "lock-open":   `${CDN}/lock-open.svg`,
-      clear:       `${CDN}/clear.svg`,
-      frame:       `${CDN}/frame.svg`,
-      page:        `${CDN}/page.svg`,
-      instance:    `${CDN}/instance.svg`,
-      image:       `${CDN}/image.svg`,
-      vector:      `${CDN}/vector.svg`,
-      component:   `${CDN}/component.svg`,
-      default:     `${CDN}/default.svg`
+      "clear":       `${CDN}/clear.svg`,
+      "frame":       `${CDN}/frame.svg`,
+      "page":        `${CDN}/page.svg`,
+      "instance":    `${CDN}/instance.svg`,
+      "image":       `${CDN}/image.svg`,
+      "vector":      `${CDN}/vector.svg`,
+      "component":   `${CDN}/component.svg`,
+      "shape":       `${CDN}/vector.svg`,
+      "default":     `${CDN}/default.svg`
     };
 
-    /** 
-     * Заменяет любой элемент с data-icon (включая его самого) на <img>
-     * или задаёт src, если уже <img>
-     */
-    function loadIcons(root = document) {
-      const nodes = [];
-      // если сам root имеет data-icon
-      if (root.hasAttribute && root.hasAttribute('data-icon')) {
-        nodes.push(root);
+    function loadIcon(el) {
+      const key = el.getAttribute('data-icon');
+      const url = ICONS[key] || ICONS.default;
+      if (el.tagName.toLowerCase() === 'img') {
+        el.src = url;
+        return el;
       }
-      // плюс все вложенные
-      root.querySelectorAll('[data-icon]').forEach(el => nodes.push(el));
-
-      nodes.forEach(el => {
-        const key = el.getAttribute('data-icon');
-        const url = ICON_URLS[key] || ICON_URLS.default;
-        if (el.tagName.toLowerCase() === 'img') {
-          el.src = url;
-        } else {
-          const img = document.createElement('img');
-          img.src = url;
-          img.width = el.clientWidth;
-          img.height = el.clientHeight;
-          img.alt = key;
-          img.title = el.title || key;
-          el.replaceWith(img);
-        }
-      });
+      const img = document.createElement('img');
+      for (const attr of el.attributes) img.setAttribute(attr.name, attr.value);
+      img.src = url;
+      el.replaceWith(img);
+      return img;
     }
 
-    function send(type, payload = {}) {
+    const send = (type, payload={}) =>
       parent.postMessage({ pluginMessage: { type, ...payload } }, '*');
-    }
-
-    // навигация
-    function navigate(i) { send('navigateTo', { index: i }); }
-    function removeEntry(i) { send('removeEntry', { index: i }); }
-    function toggleLock() { send('toggleLock', { locked: !locked }); }
-
-    // resize
-    const handle = document.getElementById('resizeHandle');
-    let isResizing=false, startY, startH;
-    handle.addEventListener('mousedown', e => {
-      isResizing = true; startY = e.clientY; startH = window.innerHeight;
-    });
-    window.addEventListener('mousemove', e => {
-      if (!isResizing) return;
-      send('resize', { height: startH + (e.clientY - startY) });
-    });
-    window.addEventListener('mouseup', () => { isResizing = false; });
 
     let locked = false;
-    const lockBtn = document.getElementById('lockBtn');
+    const lockBtn  = document.getElementById('lockBtn');
     const clearBtn = document.getElementById('clearBtn');
+    const listEl   = document.getElementById('historyList');
+    const handle   = document.getElementById('resizeHandle');
 
+    // Initial
     window.onload = () => {
-      // подгрузим замены для header-кнопок
-      loadIcons();
-      // запросим историю и состояние lock
+      loadIcon(lockBtn);
+      loadIcon(clearBtn);
       send('getHistory');
       send('getLockState');
     };
 
+    // Messages
     window.onmessage = e => {
       const msg = e.data.pluginMessage;
       if (msg.type === 'history') {
-        const ul = document.getElementById('historyList');
-        ul.innerHTML = '';
+        listEl.innerHTML = '';
         if (!msg.history.length) {
-          ul.innerHTML = '<li><i>History is empty.</i></li>';
+          listEl.innerHTML = '<li><i>History is empty.</i></li>';
         } else {
           msg.history.forEach((entry, idx) => {
             const li = document.createElement('li');
             const btn = document.createElement('div');
             btn.className = 'entry';
             btn.innerHTML = `
-              <div class="entry-left">
-                <div class="entry-icon" data-icon="${entry.nodeType.toLowerCase()}"></div>
-                <div class="entry-text">
-                  <div class="entry-title">${entry.pageName}</div>
-                  ${entry.nodeName?`<div class="entry-subtitle">${entry.nodeName}</div>`:''}
-                </div>
+              <div class="entry-icon" data-icon="${entry.nodeType.toLowerCase()}"></div>
+              <div class="entry-content">
+                <p class="entry-title">${entry.nodeName||''}</p>
+                <p class="entry-sub">${entry.pageName}</p>
               </div>
-              <div class="entry-remove" data-icon="clear"></div>`;
-            loadIcons(btn);
-            btn.addEventListener('click', () => navigate(idx));
-            btn.querySelector('.entry-remove')
-               .addEventListener('click', e => { e.stopPropagation(); removeEntry(idx); });
-            ul.appendChild(li).appendChild(btn);
+              <div class="remove-icon">×</div>`;
+            // load icons
+            loadIcon(btn.querySelector('.entry-icon'));
+            // events
+            btn.onclick = () => send('navigateTo',{index:idx});
+            btn.querySelector('.remove-icon').onclick = ev => {
+              ev.stopPropagation();
+              send('removeEntry',{index:idx});
+            };
+            li.appendChild(btn);
+            listEl.appendChild(li);
           });
         }
       }
       else if (msg.type === 'lockState') {
         locked = msg.locked;
-        lockBtn.setAttribute('data-icon', locked ? 'lock-open' : 'lock-closed');
+        lockBtn.setAttribute('data-icon', locked ? 'lock-closed' : 'lock-open');
         lockBtn.title = locked ? 'Unlock history' : 'Lock history';
-        loadIcons(lockBtn);
+        loadIcon(lockBtn);
       }
     };
 
-    lockBtn.addEventListener('click', () => {
-      locked = !locked;
-      toggleLock();
+    // UI events
+    lockBtn.onclick  = () => { locked = !locked; send('toggleLock',{locked}); };
+    clearBtn.onclick = () => send('clearHistory');
+
+    // Vertical resize
+    let isResizing = false, startY, startH;
+    handle.addEventListener('mousedown', e => {
+      isResizing = true;
+      startY = e.clientY;
+      startH = window.innerHeight;
     });
-    clearBtn.addEventListener('click', () => send('clearHistory'));
+    window.addEventListener('mousemove', e => {
+      if (!isResizing) return;
+      send('resize',{height: startH + (e.clientY - startY)});
+    });
+    window.addEventListener('mouseup', () => { isResizing = false; });
   </script>
 </body>
 </html>
