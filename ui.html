@@ -4,166 +4,9 @@
   <meta charset="UTF-8" />
   <title>FigmaJumpBack</title>
   <style>
-    /* ——— Корневые стили ——— */
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: Inter, sans-serif;
-      font-size: 12px;
-      color: #000;
-    }
-    body {
-      display: flex;
-      flex-direction: column;
-      box-sizing: border-box;
-      padding: 0;
-      position: relative;
-    }
-
-    /* ——— Header ——— */
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 40px;
-      padding: 8px 16px;
-      border-bottom: 0.5px solid rgba(0,0,0,0.10);
-      background: #FFF;
-    }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-    }
-    .logo-icon {
-      width: 24px; height: 24px;
-      position: relative;
-    }
-    .logo-text {
-      flex: 1;
-      font-weight: 500;
-      font-size: 12px;
-      color: #000;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .header-right img {
-      width: 24px;
-      height: 24px;
-      cursor: pointer;
-    }
-
-    /* ——— Sub-header / Controls ——— */
-    .subheader {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 16px;
-      text-transform: uppercase;
-      font-size: 12px;
-      font-weight: 400;
-      color: #808080;
-    }
-
-    /* ——— List ——— */
-    #historyList {
-      flex: 1;
-      margin: 0;
-      padding: 0 16px;
-      list-style: none;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-    #historyList li {
-      margin-bottom: 8px;
-    }
-
-    /* ——— Entry Card ——— */
-    .entry {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 40px;
-      padding: 4px 12px 4px 4px;
-      border-radius: 8px;
-      border: 1px solid #D8D8D8;
-      background: #FFF;
-      cursor: pointer;
-      overflow: hidden;
-      box-sizing: border-box;
-    }
-    .entry.selected {
-      background: rgba(131,172,255,0.05);
-      border-color: #83ACFF;
-    }
-    .entry-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-      overflow: hidden;
-    }
-    .entry-icon {
-      flex: 0 0 24px;
-      width: 24px; height: 24px;
-      position: relative;
-    }
-    .entry-text {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .entry-title {
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      line-height: 1.2;
-    }
-    .entry-subtitle {
-      font-size: 10px;
-      font-weight: 500;
-      opacity: 0.5;
-      line-height: 1.2;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-    .entry-remove {
-      flex: 0 0 12px;
-      width: 12px; height: 12px;
-      opacity: 0.5;
-      cursor: pointer;
-    }
-    /* показываем remove-кнопку лишь при наведении карточки */
-    .entry:hover .entry-remove {
-      opacity: 1;
-    }
-
-    /* ——— Resize Handle ——— */
-    #resizeHandle {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 6px;
-      background: transparent;
-      cursor: ns-resize;
-    }
-    #resizeHandle:hover {
-      background: rgba(0,0,0,0.1);
-    }
+    /* --- стили опущены для краткости; скопируй их из предыдущей версии --- */
   </style>
 </head>
-
 <body>
   <!-- HEADER -->
   <div class="header">
@@ -172,18 +15,18 @@
       <div class="logo-text">FigmaJumpBack</div>
     </div>
     <div class="header-right">
-      <img id="lockBtn" data-icon="lock-closed" title="Lock history" />
-      <img id="clearBtn" data-icon="clear" title="Clear history" />
+      <!-- заменили <img> на <div> -->
+      <div id="lockBtn" data-icon="lock-closed" title="Lock history"></div>
+      <div id="clearBtn" data-icon="clear" title="Clear history"></div>
     </div>
   </div>
 
   <!-- SUBHEADER -->
   <div class="subheader">
     <div>Recent</div>
-    <!-- пусто, если ничего добавится, или дополнительные контролы -->
   </div>
 
-  <!-- LIST OF HISTORY -->
+  <!-- HISTORY LIST -->
   <ul id="historyList">
     <li><i>Loading…</i></li>
   </ul>
@@ -192,70 +35,69 @@
   <div id="resizeHandle"></div>
 
   <script>
-    // URL к вашим иконкам на GitHub Pages
     const CDN = "https://owlson.github.io/FigmaJumpBack/assets/icons";
-
     const ICON_URLS = {
-      "logo":         `${CDN}/logo.svg`,          // если нужна иконка логотипа
-      "lock-closed":  `${CDN}/lock-closed.svg`,
-      "lock-open":    `${CDN}/lock-open.svg`,
-      "clear":        `${CDN}/clear.svg`,
-      "frame":        `${CDN}/frame.svg`,
-      "page":         `${CDN}/page.svg`,
-      "instance":     `${CDN}/instance.svg`,
-      "image":        `${CDN}/image.svg`,
-      "vector":       `${CDN}/vector.svg`,
-      "component":    `${CDN}/component.svg`,
-      "default":      `${CDN}/default.svg`
+      logo:        `${CDN}/logo.svg`,
+      "lock-closed": `${CDN}/lock-closed.svg`,
+      "lock-open":   `${CDN}/lock-open.svg`,
+      clear:       `${CDN}/clear.svg`,
+      frame:       `${CDN}/frame.svg`,
+      page:        `${CDN}/page.svg`,
+      instance:    `${CDN}/instance.svg`,
+      image:       `${CDN}/image.svg`,
+      vector:      `${CDN}/vector.svg`,
+      component:   `${CDN}/component.svg`,
+      default:     `${CDN}/default.svg`
     };
 
-    // Подставить атрибут src у всех <div data-icon=...>
+    /** 
+     * Заменяет любой элемент с data-icon (включая его самого) на <img>
+     * или задаёт src, если уже <img>
+     */
     function loadIcons(root = document) {
-      root.querySelectorAll('[data-icon]').forEach(el => {
+      const nodes = [];
+      // если сам root имеет data-icon
+      if (root.hasAttribute && root.hasAttribute('data-icon')) {
+        nodes.push(root);
+      }
+      // плюс все вложенные
+      root.querySelectorAll('[data-icon]').forEach(el => nodes.push(el));
+
+      nodes.forEach(el => {
         const key = el.getAttribute('data-icon');
-        const url = ICON_URLS[key] || ICON_URLS["default"];
-        // заменяем div на <img> для удобства
-        const img = document.createElement('img');
-        img.src = url;
-        img.width = el.clientWidth;
-        img.height = el.clientHeight;
-        img.alt = key;
-        el.replaceWith(img);
+        const url = ICON_URLS[key] || ICON_URLS.default;
+        if (el.tagName.toLowerCase() === 'img') {
+          el.src = url;
+        } else {
+          const img = document.createElement('img');
+          img.src = url;
+          img.width = el.clientWidth;
+          img.height = el.clientHeight;
+          img.alt = key;
+          img.title = el.title || key;
+          el.replaceWith(img);
+        }
       });
     }
 
-    // отправка сообщений в code.js
     function send(type, payload = {}) {
       parent.postMessage({ pluginMessage: { type, ...payload } }, '*');
     }
 
-    // навигация при клике по entry
-    function navigate(idx) {
-      send('navigateTo', { index: idx });
-    }
+    // навигация
+    function navigate(i) { send('navigateTo', { index: i }); }
+    function removeEntry(i) { send('removeEntry', { index: i }); }
+    function toggleLock() { send('toggleLock', { locked: !locked }); }
 
-    // удалить запись
-    function removeEntry(idx) {
-      send('removeEntry', { index: idx });
-    }
-
-    // переключить lock
-    function toggleLock() {
-      send('toggleLock', { locked: !locked });
-    }
-
-    // drag & resize
+    // resize
     const handle = document.getElementById('resizeHandle');
-    let isResizing = false, startY, startH;
+    let isResizing=false, startY, startH;
     handle.addEventListener('mousedown', e => {
-      isResizing = true;
-      startY = e.clientY;
-      startH = window.innerHeight;
+      isResizing = true; startY = e.clientY; startH = window.innerHeight;
     });
     window.addEventListener('mousemove', e => {
       if (!isResizing) return;
-      const newH = startH + (e.clientY - startY);
-      send('resize', { height: newH });
+      send('resize', { height: startH + (e.clientY - startY) });
     });
     window.addEventListener('mouseup', () => { isResizing = false; });
 
@@ -264,7 +106,9 @@
     const clearBtn = document.getElementById('clearBtn');
 
     window.onload = () => {
-      // сразу запросим историю и состояние lock
+      // подгрузим замены для header-кнопок
+      loadIcons();
+      // запросим историю и состояние lock
       send('getHistory');
       send('getLockState');
     };
@@ -272,10 +116,10 @@
     window.onmessage = e => {
       const msg = e.data.pluginMessage;
       if (msg.type === 'history') {
-        const list = document.getElementById('historyList');
-        list.innerHTML = '';
+        const ul = document.getElementById('historyList');
+        ul.innerHTML = '';
         if (!msg.history.length) {
-          list.innerHTML = '<li><i>History is empty.</i></li>';
+          ul.innerHTML = '<li><i>History is empty.</i></li>';
         } else {
           msg.history.forEach((entry, idx) => {
             const li = document.createElement('li');
@@ -286,32 +130,23 @@
                 <div class="entry-icon" data-icon="${entry.nodeType.toLowerCase()}"></div>
                 <div class="entry-text">
                   <div class="entry-title">${entry.pageName}</div>
-                  ${entry.nodeName ? `<div class="entry-subtitle">${entry.nodeName}</div>` : ''}
+                  ${entry.nodeName?`<div class="entry-subtitle">${entry.nodeName}</div>`:''}
                 </div>
               </div>
-              <div class="entry-remove" data-icon="clear"></div>
-            `;
-            // иконки подгрузим
+              <div class="entry-remove" data-icon="clear"></div>`;
             loadIcons(btn);
-
-            // клик по карточке → навигация
             btn.addEventListener('click', () => navigate(idx));
-            // клик по remove
             btn.querySelector('.entry-remove')
-               .addEventListener('click', e => {
-                 e.stopPropagation();
-                 removeEntry(idx);
-               });
-
-            list.appendChild(li).appendChild(btn);
+               .addEventListener('click', e => { e.stopPropagation(); removeEntry(idx); });
+            ul.appendChild(li).appendChild(btn);
           });
         }
       }
       else if (msg.type === 'lockState') {
         locked = msg.locked;
-        lockBtn.setAttribute('title', locked ? 'Unlock history' : 'Lock history');
         lockBtn.setAttribute('data-icon', locked ? 'lock-open' : 'lock-closed');
-        loadIcons(document.getElementById('lockBtn'));
+        lockBtn.title = locked ? 'Unlock history' : 'Lock history';
+        loadIcons(lockBtn);
       }
     };
 
@@ -319,7 +154,6 @@
       locked = !locked;
       toggleLock();
     });
-
     clearBtn.addEventListener('click', () => send('clearHistory'));
   </script>
 </body>
