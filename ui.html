@@ -5,76 +5,53 @@
   <title>FigmaJumpBack</title>
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: sans-serif;
-      height: 100%;
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: sans-serif; height: 100%;
     }
     body {
       position: relative;
-      display: flex;
-      flex-direction: column;
-      padding: 8px;
-      overflow: hidden;
+      display: flex; flex-direction: column;
+      padding: 8px; overflow: hidden;
     }
 
     /* Subheader */
     .subheader {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 0;
+      display: flex; align-items: center;
+      justify-content: space-between; padding: 8px 0;
     }
-    .subheader .label {
-      font-size: 12px;
-      font-weight: 400;
-      color: #808080;
-      text-transform: uppercase;
+    .label {
+      font-size: 12px; font-weight: 400;
+      color: #808080; text-transform: uppercase;
     }
-    .subheader .controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .controls {
+      display: flex; align-items: center; gap: 8px;
     }
-    .subheader .controls img {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
+    .controls img {
+      width: 20px; height: 20px; cursor: pointer;
       opacity: 0.8;
     }
-    .subheader .controls img:hover {
+    .controls img:hover {
       opacity: 1;
     }
 
     /* List */
     #historyList {
-      flex: 1;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      overflow-y: auto;
-      overflow-x: hidden;
+      flex: 1; margin: 0; padding: 0;
+      list-style: none; overflow-y: auto; overflow-x: hidden;
     }
-    #historyList li {
-      margin-bottom: 8px;
-    }
+    #historyList li { margin-bottom: 8px; }
 
     /* Entry */
     .entry {
       all: unset;
-      display: flex;
-      align-items: center;
-      width: 100%;
-      height: 40px;
+      display: flex; align-items: center;
+      width: 100%; height: 40px;
       padding: 0 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      cursor: pointer;
-      box-sizing: border-box;
+      border: 1px solid #ccc; border-radius: 4px;
+      cursor: pointer; box-sizing: border-box;
     }
     .entry:hover {
-      background: rgba(131, 172, 255, 0.05);
+      background: rgba(131,172,255,0.05);
       border: 1px solid #83ACFF;
     }
     .entry.selected {
@@ -82,66 +59,52 @@
       border: 2px solid #83ACFF;
     }
     .entry-icon {
-      width: 20px;
-      height: 20px;
-      margin-right: 8px;
-      flex-shrink: 0;
+      width: 20px; height: 20px;
+      margin-right: 8px; flex-shrink: 0;
     }
     .entry-content {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      overflow: hidden;
+      display: flex; flex-direction: column;
+      justify-content: center; overflow: hidden;
     }
     .entry-title {
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 12px; font-weight: 500;
       margin: 0 0 2px 0;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
+      white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
     }
     .entry-sub {
-      font-size: 10px;
-      font-weight: 500;
-      margin: 0;
-      color: #666;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
+      font-size: 10px; font-weight: 500;
+      margin: 0; color: #666;
+      white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
     }
     .remove-icon {
-      font-size: 16px;
-      line-height: 1;
-      color: #666;
-      margin-left: 8px;
-      cursor: pointer;
-      opacity: 0.5;
-      user-select: none;
+      width: 16px; height: 16px;
+      cursor: pointer; opacity: 0.5;
+      user-select: none; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.1s, opacity 0.1s;
     }
     .entry:hover .remove-icon {
+      opacity: 1;
+    }
+    .remove-icon:hover {
+      background: rgba(131,172,255,0.15);
+      border-radius: 8px;
       opacity: 1;
     }
 
     /* Resize handle */
     #resizeHandle {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 6px;
-      background: transparent;
-      cursor: ns-resize;
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 6px; background: transparent; cursor: ns-resize;
     }
     #resizeHandle:hover {
-      background: rgba(0, 0, 0, 0.1);
+      background: rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
 
-  <!-- Subheader -->
   <div class="subheader">
     <div class="label">Recent</div>
     <div class="controls">
@@ -150,18 +113,15 @@
     </div>
   </div>
 
-  <!-- History list -->
   <ul id="historyList">
     <li><i>Loading…</i></li>
   </ul>
 
-  <!-- Resize handle -->
   <div id="resizeHandle"></div>
 
   <script>
     const CDN = "https://owlson.github.io/FigmaJumpBack/assets/icons";
     const ICONS = {
-      // Geometric shapes → vector.svg
       vector:            `${CDN}/vector.svg`,
       rectangle:         `${CDN}/vector.svg`,
       ellipse:           `${CDN}/vector.svg`,
@@ -170,44 +130,38 @@
       star:              `${CDN}/vector.svg`,
       boolean_operation: `${CDN}/vector.svg`,
       shape_with_text:   `${CDN}/vector.svg`,
-
-      // Auto layout
-      auto_layout:  `${CDN}/autolayout.svg`,
-      autolayout:   `${CDN}/autolayout.svg`,
-
-      // Specific types
-      frame:       `${CDN}/frame.svg`,
-      page:        `${CDN}/page.svg`,
-      component:   `${CDN}/component.svg`,
-      instance:    `${CDN}/instance.svg`,
-      image:       `${CDN}/image.svg`,
-      text:        `${CDN}/text.svg`,
-      clear:       `${CDN}/clear.svg`,
-      "lock-closed":`${CDN}/lock-closed.svg`,
-      "lock-open":  `${CDN}/lock-open.svg`,
-
-      // Fallback
-      default:     `${CDN}/default.svg`
+      auto_layout:       `${CDN}/autolayout.svg`,
+      autolayout:        `${CDN}/autolayout.svg`,
+      frame:             `${CDN}/frame.svg`,
+      page:              `${CDN}/page.svg`,
+      component:         `${CDN}/component.svg`,
+      component_set:     `${CDN}/component.svg`,
+      instance:          `${CDN}/instance.svg`,
+      group:             `${CDN}/group.svg`,
+      image:             `${CDN}/image.svg`,
+      text:              `${CDN}/text.svg`,
+      clear:             `${CDN}/clear.svg`,
+      "lock-closed":     `${CDN}/lock-closed.svg`,
+      "lock-open":       `${CDN}/lock-open.svg`,
+      close:             `${CDN}/close.svg`,
+      default:           `${CDN}/default.svg`
     };
 
     function loadIcon(el) {
       const key = el.getAttribute('data-icon');
       const url = ICONS[key] || ICONS.default;
-      if (el.tagName.toLowerCase() === 'img') {
-        el.src = url;
-        return el;
+      if (el.tagName.toLowerCase()==='img') {
+        el.src = url; return el;
       }
       const img = document.createElement('img');
-      for (const {name, value} of el.attributes) {
-        img.setAttribute(name, value);
-      }
+      for (const {name,value} of el.attributes) img.setAttribute(name,value);
       img.src = url;
       el.replaceWith(img);
       return img;
     }
 
-    const send = (type, payload = {}) =>
-      parent.postMessage({ pluginMessage: { type, ...payload } }, '*');
+    const send = (type,p={}) =>
+      parent.postMessage({ pluginMessage:{type,...p} }, '*');
 
     let locked = false;
     const lockBtn  = document.getElementById('lockBtn');
@@ -215,7 +169,6 @@
     const listEl   = document.getElementById('historyList');
     const handle   = document.getElementById('resizeHandle');
 
-    // Initial load
     window.onload = () => {
       loadIcon(lockBtn);
       loadIcon(clearBtn);
@@ -223,60 +176,59 @@
       send('getLockState');
     };
 
-    // Handle messages from code.js
     window.onmessage = e => {
       const msg = e.data.pluginMessage;
-      if (msg.type === 'history') {
+      if (msg.type==='history') {
         listEl.innerHTML = '';
         if (!msg.history.length) {
           listEl.innerHTML = '<li><i>History is empty.</i></li>';
         } else {
-          msg.history.forEach((entry, idx) => {
+          msg.history.forEach((entry,i)=>{
             const li = document.createElement('li');
             const btn = document.createElement('div');
-            btn.className = 'entry';
+            btn.className='entry';
+            if (i===0) btn.classList.add('selected');
+            const typeKey = (entry.nodeType==='FRAME'&&entry.layoutMode!=='NONE')
+              ? 'autolayout'
+              : entry.nodeType.toLowerCase();
             btn.innerHTML = `
-              <div class="entry-icon" data-icon="${entry.nodeType.toLowerCase()}"></div>
+              <div class="entry-icon" data-icon="${typeKey}"></div>
               <div class="entry-content">
-                <p class="entry-title">${entry.nodeName || ''}</p>
+                <p class="entry-title">${entry.nodeName||''}</p>
                 <p class="entry-sub">${entry.pageName}</p>
               </div>
-              <div class="remove-icon">×</div>`;
+              <div class="remove-icon" data-icon="close" title="Remove entry"></div>`;
             loadIcon(btn.querySelector('.entry-icon'));
-            btn.onclick = () => send('navigateTo', { index: idx });
-            btn.querySelector('.remove-icon').onclick = ev => {
+            loadIcon(btn.querySelector('.remove-icon'));
+            btn.onclick = () => send('navigateTo',{index:i});
+            btn.querySelector('.remove-icon').onclick = ev=>{
               ev.stopPropagation();
-              send('removeEntry', { index: idx });
+              send('removeEntry',{index:i});
             };
             li.appendChild(btn);
             listEl.appendChild(li);
           });
         }
-      }
-      else if (msg.type === 'lockState') {
+      } else if (msg.type==='lockState') {
         locked = msg.locked;
-        lockBtn.setAttribute('data-icon', locked ? 'lock-closed' : 'lock-open');
-        lockBtn.title = locked ? 'Unlock history' : 'Lock history';
+        lockBtn.setAttribute('data-icon', locked?'lock-closed':'lock-open');
+        lockBtn.title = locked?'Unlock history':'Lock history';
         loadIcon(lockBtn);
       }
     };
 
-    // UI events
-    lockBtn.onclick  = () => { locked = !locked; send('toggleLock', { locked }); };
-    clearBtn.onclick = () => send('clearHistory');
+    lockBtn.onclick  = ()=>{locked=!locked; send('toggleLock',{locked});};
+    clearBtn.onclick = ()=>send('clearHistory');
 
-    // Vertical resize
-    let isResizing = false, startY, startH;
-    handle.addEventListener('mousedown', e => {
-      isResizing = true;
-      startY = e.clientY;
-      startH = window.innerHeight;
+    let isResizing=false, startY, startH;
+    handle.addEventListener('mousedown',e=>{
+      isResizing=true; startY=e.clientY; startH=window.innerHeight;
     });
-    window.addEventListener('mousemove', e => {
-      if (!isResizing) return;
-      send('resize', { height: startH + (e.clientY - startY) });
+    window.addEventListener('mousemove',e=>{
+      if(!isResizing) return;
+      send('resize',{height:startH+(e.clientY-startY)});
     });
-    window.addEventListener('mouseup', () => { isResizing = false; });
+    window.addEventListener('mouseup',()=>{isResizing=false;});
   </script>
 </body>
 </html>
