@@ -4,172 +4,249 @@
   <meta charset="UTF-8" />
   <title>FigmaJumpBack</title>
   <style>
+    /* ——— Корневые стили ——— */
     html, body {
-      margin: 0; padding: 0;
-      height: 100%; overflow: hidden;
-      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      font-size: 12px;
+      color: #000;
     }
     body {
       display: flex;
       flex-direction: column;
-      padding: 8px;
       box-sizing: border-box;
+      padding: 0;
       position: relative;
     }
 
+    /* ——— Header ——— */
     .header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      justify-content: space-between;
+      height: 40px;
+      padding: 8px 16px;
+      border-bottom: 0.5px solid rgba(0,0,0,0.10);
+      background: #FFF;
     }
-    .title {
-      font-size: 16px;
-      color: rgba(0,0,0,0.5);
-      margin: 0;
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
     }
-    .controls button {
-      all: unset;
-      margin-left: 8px;
+    .logo-icon {
+      width: 24px; height: 24px;
+      position: relative;
+    }
+    .logo-text {
+      flex: 1;
+      font-weight: 500;
+      font-size: 12px;
+      color: #000;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-right img {
+      width: 24px;
+      height: 24px;
       cursor: pointer;
-      font-size: 16px;
-      padding: 4px;
-    }
-    .controls button:hover {
-      background: #f0f0f0;
-      border-radius: 4px;
     }
 
+    /* ——— Sub-header / Controls ——— */
+    .subheader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 400;
+      color: #808080;
+    }
+
+    /* ——— List ——— */
     #historyList {
       flex: 1;
-      list-style: none;
-      padding: 0;
       margin: 0;
+      padding: 0 16px;
+      list-style: none;
       overflow-y: auto;
       overflow-x: hidden;
     }
-    li { margin-bottom: 4px; }
+    #historyList li {
+      margin-bottom: 8px;
+    }
 
-    button.entry {
-      all: unset;
+    /* ——— Entry Card ——— */
+    .entry {
       display: flex;
-      align-items: flex-start;
-      position: relative;
-      width: 100%;
-      box-sizing: border-box;
-      padding: 4px 6px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      align-items: center;
+      justify-content: space-between;
+      height: 40px;
+      padding: 4px 12px 4px 4px;
+      border-radius: 8px;
+      border: 1px solid #D8D8D8;
+      background: #FFF;
       cursor: pointer;
       overflow: hidden;
+      box-sizing: border-box;
     }
-    button.entry:hover { background: #f0f0f0; }
-
-    .entry-icon {
-      flex: 0 0 20px;
-      margin-right: 6px;
+    .entry.selected {
+      background: rgba(131,172,255,0.05);
+      border-color: #83ACFF;
     }
-    .entry-content {
+    .entry-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       flex: 1;
       overflow: hidden;
     }
-    .entry-page {
+    .entry-icon {
+      flex: 0 0 24px;
+      width: 24px; height: 24px;
+      position: relative;
+    }
+    .entry-text {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .entry-title {
       font-size: 12px;
-      font-weight: bold;
-      margin: 0 0 2px;
+      font-weight: 500;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      line-height: 1.2;
+    }
+    .entry-subtitle {
+      font-size: 10px;
+      font-weight: 500;
+      opacity: 0.5;
+      line-height: 1.2;
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
     }
-    .entry-frame {
-      font-size: 14px;
-      margin: 0;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-
-    .remove-btn {
-      display: none;
-      position: absolute;
-      top: 4px; right: 6px;
-      all: unset;
+    .entry-remove {
+      flex: 0 0 12px;
+      width: 12px; height: 12px;
+      opacity: 0.5;
       cursor: pointer;
-      font-size: 14px;
-      color: #999;
     }
-    button.entry:hover .remove-btn {
-      display: block;
+    /* показываем remove-кнопку лишь при наведении карточки */
+    .entry:hover .entry-remove {
+      opacity: 1;
     }
 
-    /* видимый ресайз-хэндл */
+    /* ——— Resize Handle ——— */
     #resizeHandle {
-      height: 6px;
-      cursor: ns-resize;
-      background: rgba(0,0,0,0.1);
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      transition: background 0.2s;
+      height: 6px;
+      background: transparent;
+      cursor: ns-resize;
     }
     #resizeHandle:hover {
-      background: rgba(0,0,0,0.2);
+      background: rgba(0,0,0,0.1);
     }
   </style>
 </head>
+
 <body>
+  <!-- HEADER -->
   <div class="header">
-    <h2 class="title">Recent</h2>
-    <div class="controls">
-      <button id="lockBtn" title="Lock/Unlock history">🔓</button>
-      <button id="clearBtn" title="Clear history">🧹</button>
+    <div class="header-left">
+      <div class="logo-icon" data-icon="logo"></div>
+      <div class="logo-text">FigmaJumpBack</div>
+    </div>
+    <div class="header-right">
+      <img id="lockBtn" data-icon="lock-closed" title="Lock history" />
+      <img id="clearBtn" data-icon="clear" title="Clear history" />
     </div>
   </div>
 
+  <!-- SUBHEADER -->
+  <div class="subheader">
+    <div>Recent</div>
+    <!-- пусто, если ничего добавится, или дополнительные контролы -->
+  </div>
+
+  <!-- LIST OF HISTORY -->
   <ul id="historyList">
     <li><i>Loading…</i></li>
   </ul>
 
+  <!-- RESIZE HANDLE -->
   <div id="resizeHandle"></div>
 
   <script>
+    // URL к вашим иконкам на GitHub Pages
     const CDN = "https://owlson.github.io/FigmaJumpBack/assets/icons";
+
     const ICON_URLS = {
-      COMPONENT: `${CDN}/component.svg`,
-      INSTANCE:  `${CDN}/instance.svg`,
-      GROUP:     `${CDN}/group.svg`,
-      FRAME:     `${CDN}/frame.svg`,
-      SECTION:   `${CDN}/section.svg`,
-      PAGE:      `${CDN}/page.svg`,
-      IMAGE:     `${CDN}/image.svg`,
-      VECTOR:    `${CDN}/vector.svg`,
-      TEXT:      `${CDN}/text.svg`,
-      DEFAULT:   `${CDN}/default.svg`
+      "logo":         `${CDN}/logo.svg`,          // если нужна иконка логотипа
+      "lock-closed":  `${CDN}/lock-closed.svg`,
+      "lock-open":    `${CDN}/lock-open.svg`,
+      "clear":        `${CDN}/clear.svg`,
+      "frame":        `${CDN}/frame.svg`,
+      "page":         `${CDN}/page.svg`,
+      "instance":     `${CDN}/instance.svg`,
+      "image":        `${CDN}/image.svg`,
+      "vector":       `${CDN}/vector.svg`,
+      "component":    `${CDN}/component.svg`,
+      "default":      `${CDN}/default.svg`
     };
 
-    let locked = false;
-
-    function getIconImg(type) {
-      const url = ICON_URLS[type] || ICON_URLS.DEFAULT;
-      return `<img class="entry-icon" src="${url}" width="20" height="20" alt="${type}">`;
+    // Подставить атрибут src у всех <div data-icon=...>
+    function loadIcons(root = document) {
+      root.querySelectorAll('[data-icon]').forEach(el => {
+        const key = el.getAttribute('data-icon');
+        const url = ICON_URLS[key] || ICON_URLS["default"];
+        // заменяем div на <img> для удобства
+        const img = document.createElement('img');
+        img.src = url;
+        img.width = el.clientWidth;
+        img.height = el.clientHeight;
+        img.alt = key;
+        el.replaceWith(img);
+      });
     }
 
-    function navigate(i) {
-      parent.postMessage({ pluginMessage: { type: 'navigateTo', index: i } }, '*');
+    // отправка сообщений в code.js
+    function send(type, payload = {}) {
+      parent.postMessage({ pluginMessage: { type, ...payload } }, '*');
     }
 
-    function removeEntry(i) {
-      parent.postMessage({ pluginMessage: { type: 'removeEntry', index: i } }, '*');
+    // навигация при клике по entry
+    function navigate(idx) {
+      send('navigateTo', { index: idx });
     }
 
+    // удалить запись
+    function removeEntry(idx) {
+      send('removeEntry', { index: idx });
+    }
+
+    // переключить lock
     function toggleLock() {
-      locked = !locked;
-      lockBtn.textContent = locked ? '🔒' : '🔓';
-      parent.postMessage({ pluginMessage: { type: 'toggleLock', locked } }, '*');
+      send('toggleLock', { locked: !locked });
     }
 
-    // resize handle
+    // drag & resize
     const handle = document.getElementById('resizeHandle');
-    let isResizing = false, startY = 0, startH = 0;
+    let isResizing = false, startY, startH;
     handle.addEventListener('mousedown', e => {
       isResizing = true;
       startY = e.clientY;
@@ -178,17 +255,20 @@
     window.addEventListener('mousemove', e => {
       if (!isResizing) return;
       const newH = startH + (e.clientY - startY);
-      parent.postMessage({ pluginMessage: { type: 'resize', height: newH } }, '*');
+      send('resize', { height: newH });
     });
     window.addEventListener('mouseup', () => { isResizing = false; });
 
-    // initial requests
+    let locked = false;
+    const lockBtn = document.getElementById('lockBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
     window.onload = () => {
-      parent.postMessage({ pluginMessage: { type: 'getHistory' } }, '*');
-      parent.postMessage({ pluginMessage: { type: 'getLockState' } }, '*');
+      // сразу запросим историю и состояние lock
+      send('getHistory');
+      send('getLockState');
     };
 
-    // handle messages from code
     window.onmessage = e => {
       const msg = e.data.pluginMessage;
       if (msg.type === 'history') {
@@ -196,39 +276,51 @@
         list.innerHTML = '';
         if (!msg.history.length) {
           list.innerHTML = '<li><i>History is empty.</i></li>';
-          return;
-        }
-        msg.history.forEach((entry, idx) => {
-          const li = document.createElement('li');
-          const btn = document.createElement('button');
-          btn.className = 'entry';
-          btn.innerHTML =
-            getIconImg(entry.nodeType) +
-            `<div class="entry-content">
-               <p class="entry-page">${entry.pageName}</p>
-               <p class="entry-frame">${entry.nodeName || ''}</p>
-             </div>` +
-            `<button class="remove-btn" title="Remove">&times;</button>`;
-          btn.onclick = () => navigate(idx);
-          const r = btn.querySelector('.remove-btn');
-          r.addEventListener('click', e => {
-            e.stopPropagation();
-            removeEntry(idx);
+        } else {
+          msg.history.forEach((entry, idx) => {
+            const li = document.createElement('li');
+            const btn = document.createElement('div');
+            btn.className = 'entry';
+            btn.innerHTML = `
+              <div class="entry-left">
+                <div class="entry-icon" data-icon="${entry.nodeType.toLowerCase()}"></div>
+                <div class="entry-text">
+                  <div class="entry-title">${entry.pageName}</div>
+                  ${entry.nodeName ? `<div class="entry-subtitle">${entry.nodeName}</div>` : ''}
+                </div>
+              </div>
+              <div class="entry-remove" data-icon="clear"></div>
+            `;
+            // иконки подгрузим
+            loadIcons(btn);
+
+            // клик по карточке → навигация
+            btn.addEventListener('click', () => navigate(idx));
+            // клик по remove
+            btn.querySelector('.entry-remove')
+               .addEventListener('click', e => {
+                 e.stopPropagation();
+                 removeEntry(idx);
+               });
+
+            list.appendChild(li).appendChild(btn);
           });
-          li.appendChild(btn);
-          list.appendChild(li);
-        });
+        }
       }
       else if (msg.type === 'lockState') {
         locked = msg.locked;
-        lockBtn.textContent = locked ? '🔒' : '🔓';
+        lockBtn.setAttribute('title', locked ? 'Unlock history' : 'Lock history');
+        lockBtn.setAttribute('data-icon', locked ? 'lock-open' : 'lock-closed');
+        loadIcons(document.getElementById('lockBtn'));
       }
     };
 
-    const lockBtn = document.getElementById('lockBtn');
-    lockBtn.onclick = toggleLock;
-    document.getElementById('clearBtn').onclick = () =>
-      parent.postMessage({ pluginMessage: { type: 'clearHistory' } }, '*');
+    lockBtn.addEventListener('click', () => {
+      locked = !locked;
+      toggleLock();
+    });
+
+    clearBtn.addEventListener('click', () => send('clearHistory'));
   </script>
 </body>
 </html>
