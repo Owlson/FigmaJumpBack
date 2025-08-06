@@ -7,53 +7,34 @@
     html, body { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; height:100%; }
     body { position: relative; display:flex; flex-direction:column; padding:8px; overflow:hidden; }
 
-    /* ——— Subheader ——— */
+    /* Subheader */
     .subheader {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
+      display:flex; align-items:center; justify-content:space-between;
       padding:8px 0;
     }
     .subheader .label {
-      font-size:12px;
-      font-weight:400;
-      color:#808080;
-      text-transform:uppercase;
+      font-size:12px; font-weight:400; color:#808080; text-transform:uppercase;
     }
     .subheader .controls {
-      display:flex;
-      align-items:center;
-      gap:8px;
+      display:flex; align-items:center; gap:8px;
     }
     .subheader .controls img {
-      width:20px; height:20px;
-      cursor:pointer;
-      opacity:0.8;
+      width:20px; height:20px; cursor:pointer; opacity:0.8;
     }
     .subheader .controls img:hover { opacity:1; }
 
-    /* ——— List ——— */
+    /* List */
     #historyList {
-      flex:1;
-      margin:0;
-      padding:0;
-      list-style:none;
-      overflow-y:auto;
-      overflow-x:hidden;
+      flex:1; margin:0; padding:0; list-style:none;
+      overflow-y:auto; overflow-x:hidden;
     }
     #historyList li { margin-bottom:8px; }
 
-    /* ——— Entry ——— */
+    /* Entry */
     .entry {
-      all:unset;
-      display:flex;
-      align-items:center;
-      width:100%;
-      padding:8px;
-      border:1px solid #ccc;
-      border-radius:4px;
-      cursor:pointer;
-      box-sizing:border-box;
+      all:unset; display:flex; align-items:center; width:100%;
+      padding:8px; border:1px solid #ccc; border-radius:4px;
+      cursor:pointer; box-sizing:border-box;
     }
     .entry.selected {
       background: rgba(131,172,255,0.05);
@@ -74,23 +55,15 @@
       white-space:nowrap; text-overflow:ellipsis; overflow:hidden;
     }
     .remove-icon {
-      font-size:16px;
-      line-height:1;
-      color:#666;
-      margin-left:8px;
-      cursor:pointer;
-      opacity:0.5;
-      user-select: none;
+      font-size:16px; line-height:1; color:#666;
+      margin-left:8px; cursor:pointer; opacity:0.5; user-select:none;
     }
     .entry:hover .remove-icon { opacity:1; }
 
-    /* ——— Resize Handle ——— */
+    /* Resize handle */
     #resizeHandle {
-      position:absolute;
-      bottom:0; left:0; right:0;
-      height:6px;
-      background:transparent;
-      cursor:ns-resize;
+      position:absolute; bottom:0; left:0; right:0;
+      height:6px; background:transparent; cursor:ns-resize;
     }
     #resizeHandle:hover { background:rgba(0,0,0,0.1); }
   </style>
@@ -117,17 +90,27 @@
   <script>
     const CDN = "https://owlson.github.io/FigmaJumpBack/assets/icons";
     const ICONS = {
-      "lock-closed": `${CDN}/lock-closed.svg`,
-      "lock-open":   `${CDN}/lock-open.svg`,
-      "clear":       `${CDN}/clear.svg`,
-      "frame":       `${CDN}/frame.svg`,
-      "page":        `${CDN}/page.svg`,
-      "instance":    `${CDN}/instance.svg`,
-      "image":       `${CDN}/image.svg`,
-      "vector":      `${CDN}/vector.svg`,
-      "component":   `${CDN}/component.svg`,
-      "shape":       `${CDN}/vector.svg`,
-      "default":     `${CDN}/default.svg`
+      // геометрические фигуры → vector.svg
+      vector:            `${CDN}/vector.svg`,
+      rectangle:         `${CDN}/vector.svg`,
+      ellipse:           `${CDN}/vector.svg`,
+      line:              `${CDN}/vector.svg`,
+      polygon:           `${CDN}/vector.svg`,
+      star:              `${CDN}/vector.svg`,
+      boolean_operation: `${CDN}/vector.svg`,
+      shape_with_text:   `${CDN}/vector.svg`,
+
+      // остальные
+      frame:       `${CDN}/frame.svg`,
+      page:        `${CDN}/page.svg`,
+      component:   `${CDN}/component.svg`,
+      instance:    `${CDN}/instance.svg`,
+      image:       `${CDN}/image.svg`,
+      clear:       `${CDN}/clear.svg`,
+      text:       `${CDN}/text.svg`,
+      "lock-closed":`${CDN}/lock-closed.svg`,
+      "lock-open":  `${CDN}/lock-open.svg`,
+      default:     `${CDN}/default.svg`
     };
 
     function loadIcon(el) {
@@ -153,7 +136,7 @@
     const listEl   = document.getElementById('historyList');
     const handle   = document.getElementById('resizeHandle');
 
-    // Initial
+    // Initial load
     window.onload = () => {
       loadIcon(lockBtn);
       loadIcon(clearBtn);
@@ -161,7 +144,7 @@
       send('getLockState');
     };
 
-    // Messages
+    // Handle messages
     window.onmessage = e => {
       const msg = e.data.pluginMessage;
       if (msg.type === 'history') {
@@ -180,9 +163,7 @@
                 <p class="entry-sub">${entry.pageName}</p>
               </div>
               <div class="remove-icon">×</div>`;
-            // load icons
             loadIcon(btn.querySelector('.entry-icon'));
-            // events
             btn.onclick = () => send('navigateTo',{index:idx});
             btn.querySelector('.remove-icon').onclick = ev => {
               ev.stopPropagation();
@@ -202,15 +183,13 @@
     };
 
     // UI events
-    lockBtn.onclick  = () => { locked = !locked; send('toggleLock',{locked}); };
+    lockBtn .onclick = () => { locked = !locked; send('toggleLock',{locked}); };
     clearBtn.onclick = () => send('clearHistory');
 
     // Vertical resize
-    let isResizing = false, startY, startH;
+    let isResizing=false, startY, startH;
     handle.addEventListener('mousedown', e => {
-      isResizing = true;
-      startY = e.clientY;
-      startH = window.innerHeight;
+      isResizing = true; startY = e.clientY; startH = window.innerHeight;
     });
     window.addEventListener('mousemove', e => {
       if (!isResizing) return;
