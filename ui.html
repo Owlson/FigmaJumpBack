@@ -90,7 +90,7 @@
   <script>
     const CDN = "https://owlson.github.io/FigmaJumpBack/assets/icons";
     const ICONS = {
-      // геометрические фигуры → vector.svg
+      // Geometric shapes → vector.svg
       vector:            `${CDN}/vector.svg`,
       rectangle:         `${CDN}/vector.svg`,
       ellipse:           `${CDN}/vector.svg`,
@@ -100,16 +100,22 @@
       boolean_operation: `${CDN}/vector.svg`,
       shape_with_text:   `${CDN}/vector.svg`,
 
-      // остальные
+      // Auto layout
+      auto_layout: `${CDN}/autolayout.svg`,
+      autolayout:  `${CDN}/autolayout.svg`,
+
+      // Specific types
       frame:       `${CDN}/frame.svg`,
       page:        `${CDN}/page.svg`,
       component:   `${CDN}/component.svg`,
       instance:    `${CDN}/instance.svg`,
       image:       `${CDN}/image.svg`,
+      text:        `${CDN}/text.svg`,
       clear:       `${CDN}/clear.svg`,
-      text:       `${CDN}/text.svg`,
       "lock-closed":`${CDN}/lock-closed.svg`,
       "lock-open":  `${CDN}/lock-open.svg`,
+
+      // Fallback
       default:     `${CDN}/default.svg`
     };
 
@@ -121,7 +127,7 @@
         return el;
       }
       const img = document.createElement('img');
-      for (const attr of el.attributes) img.setAttribute(attr.name, attr.value);
+      for (const {name, value} of el.attributes) img.setAttribute(name, value);
       img.src = url;
       el.replaceWith(img);
       return img;
@@ -144,7 +150,7 @@
       send('getLockState');
     };
 
-    // Handle messages
+    // Handle messages from code.js
     window.onmessage = e => {
       const msg = e.data.pluginMessage;
       if (msg.type === 'history') {
@@ -159,15 +165,18 @@
             btn.innerHTML = `
               <div class="entry-icon" data-icon="${entry.nodeType.toLowerCase()}"></div>
               <div class="entry-content">
-                <p class="entry-title">${entry.nodeName||''}</p>
+                <p class="entry-title">${entry.nodeName || ''}</p>
                 <p class="entry-sub">${entry.pageName}</p>
               </div>
               <div class="remove-icon">×</div>`;
-            loadIcon(btn.querySelector('.entry-icon'));
-            btn.onclick = () => send('navigateTo',{index:idx});
+            // Load icon
+            const iconEl = btn.querySelector('.entry-icon');
+            loadIcon(iconEl);
+            // Events
+            btn.onclick = () => send('navigateTo', {index: idx});
             btn.querySelector('.remove-icon').onclick = ev => {
               ev.stopPropagation();
-              send('removeEntry',{index:idx});
+              send('removeEntry', {index: idx});
             };
             li.appendChild(btn);
             listEl.appendChild(li);
@@ -176,6 +185,7 @@
       }
       else if (msg.type === 'lockState') {
         locked = msg.locked;
+        // closed = locked, open = unlocked
         lockBtn.setAttribute('data-icon', locked ? 'lock-closed' : 'lock-open');
         lockBtn.title = locked ? 'Unlock history' : 'Lock history';
         loadIcon(lockBtn);
@@ -183,17 +193,19 @@
     };
 
     // UI events
-    lockBtn .onclick = () => { locked = !locked; send('toggleLock',{locked}); };
+    lockBtn.onclick  = () => { locked = !locked; send('toggleLock', {locked}); };
     clearBtn.onclick = () => send('clearHistory');
 
     // Vertical resize
-    let isResizing=false, startY, startH;
+    let isResizing = false, startY, startH;
     handle.addEventListener('mousedown', e => {
-      isResizing = true; startY = e.clientY; startH = window.innerHeight;
+      isResizing = true;
+      startY = e.clientY;
+      startH = window.innerHeight;
     });
     window.addEventListener('mousemove', e => {
       if (!isResizing) return;
-      send('resize',{height: startH + (e.clientY - startY)});
+      send('resize', {height: startH + (e.clientY - startY)});
     });
     window.addEventListener('mouseup', () => { isResizing = false; });
   </script>
