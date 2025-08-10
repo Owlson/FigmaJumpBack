@@ -1,234 +1,299 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <title>FigmaJumpBack</title>
   <style>
+    :root {
+      --blue: #83ACFF;
+      --blue-05: rgba(131,172,255,0.05);
+      --blue-15: rgba(131,172,255,0.15);
+      --stroke: #E6E6E6;
+      --text: #1F1F1F;
+      --muted: #808080;
+      --bg: #FFFFFF;
+      --item-h: 40px;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
     html, body {
-      margin: 0; padding: 0; box-sizing: border-box;
-      font-family: sans-serif; height: 100%;
+      height: 100%; margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg); color: var(--text);
     }
-    body {
-      position: relative;
-      display: flex; flex-direction: column;
-      padding: 8px; overflow: hidden;
-    }
+    body { display: flex; flex-direction: column; }
 
-    /* Subheader */
+    /* header */
     .subheader {
-      display: flex; align-items: center;
-      justify-content: space-between; padding: 8px 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--stroke);
+      user-select: none;
     }
-    .label {
-      font-size: 12px; font-weight: 400;
-      color: #808080; text-transform: uppercase;
-    }
-    .controls {
-      display: flex; align-items: center; gap: 8px;
-    }
-    .controls img {
-      width: 20px; height: 20px; cursor: pointer;
-      opacity: 0.8;
-    }
-    .controls img:hover {
-      opacity: 1;
-    }
-
-    /* List */
-    #historyList {
-      flex: 1; margin: 0; padding: 0;
-      list-style: none; overflow-y: auto; overflow-x: hidden;
-    }
-    #historyList li { margin-bottom: 8px; }
-
-    /* Entry */
-    .entry {
-      all: unset;
-      display: flex; align-items: center;
-      width: 100%; height: 40px;
-      padding: 0 8px;
-      border: 1px solid #ccc; border-radius: 4px;
-      cursor: pointer; box-sizing: border-box;
-    }
-    .entry:hover {
-      background: rgba(131,172,255,0.05);
-      border: 1px solid #83ACFF;
-    }
-    .entry.selected {
-      background: none;
-      border: 2px solid #83ACFF;
-    }
-    .entry-icon {
+    .label { font-size: 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+    .controls { display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
       width: 20px; height: 20px;
-      margin-right: 8px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 6px; cursor: pointer; opacity: .85;
     }
-    .entry-content {
-      flex: 1;
-      display: flex; flex-direction: column;
-      justify-content: center; overflow: hidden;
+    .icon-btn:hover { background: var(--blue-05); }
+    .icon-btn[aria-pressed="true"] { outline: 1px solid var(--blue); }
+
+    /* list */
+    .list { flex: 1 1 auto; overflow: auto; padding: 8px; padding-bottom: 0; }
+    .item {
+      display: grid; grid-template-columns: 24px 1fr 24px;
+      align-items: center; gap: 8px;
+      height: auto; min-height: var(--item-h);
+      padding: 4px 8px;
+      border: 1px solid transparent; border-radius: var(--radius);
+      cursor: pointer; user-select: none;
     }
-    .entry-title {
-      font-size: 12px; font-weight: 500;
-      margin: 0 0 2px 0;
-      white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
+    .item:hover { background: var(--blue-05); border-color: var(--blue); }
+    .item.selected { background: transparent; border-color: var(--blue); border-width: 2px; }
+    .item:focus-visible { outline: 2px solid var(--blue); }
+
+    .ic { width: 16px; height: 16px; background-size: 16px 16px; background-repeat: no-repeat; }
+
+    .title-wrap { display: flex; flex-direction: column; min-width: 0; }
+    .obj-name {
+      font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .entry-sub {
-      font-size: 10px; font-weight: 500;
-      margin: 0; color: #666;
-      white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
-    }
-    .remove-icon {
-      width: 16px; height: 16px;
-      cursor: pointer; opacity: 0.5;
-      user-select: none; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.1s, opacity 0.1s;
-    }
-    .entry:hover .remove-icon {
-      opacity: 1;
-    }
-    .remove-icon:hover {
-      background: rgba(131,172,255,0.15);
-      border-radius: 8px;
-      opacity: 1;
+    .page-name {
+      font-size: 11px; color: var(--muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
-    /* Resize handle */
-    #resizeHandle {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      height: 6px; background: transparent; cursor: ns-resize;
+    /* remove button */
+    .remove {
+      width: 16px; height: 16px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer;
     }
-    #resizeHandle:hover {
-      background: rgba(0,0,0,0.1);
+    .remove:hover { background: var(--blue-15); }
+    .remove .ic { width: 12px; height: 12px; background-size: 12px 12px; }
+
+    /* footer: resize handle */
+    .resize {
+      border-top: 1px solid var(--stroke);
+      padding: 8px 0; display: flex; justify-content: center; align-items: center; cursor: ns-resize;
+      user-select: none;
     }
+    .grip { width: 28px; height: 4px; border-radius: 2px; background: #CFCFCF; }
   </style>
 </head>
 <body>
-
   <div class="subheader">
     <div class="label">Recent</div>
     <div class="controls">
-      <img id="lockBtn" data-icon="lock-closed" title="Lock history"/>
-      <img id="clearBtn" data-icon="clear" title="Clear history"/>
+      <div id="btn-lock" class="icon-btn" role="button" tabindex="0" aria-pressed="false" title="Lock">
+        <img id="lock-icon" alt="lock" width="16" height="16" />
+      </div>
+      <div id="btn-clear" class="icon-btn" role="button" tabindex="0" title="Clear">
+        <img alt="clear" width="16" height="16" />
+      </div>
     </div>
   </div>
 
-  <ul id="historyList">
-    <li><i>Loading…</i></li>
-  </ul>
+  <div id="list" class="list" role="list" aria-label="Navigation history"></div>
 
-  <div id="resizeHandle"></div>
+  <div id="resize" class="resize" role="separator" aria-orientation="horizontal" tabindex="0">
+    <div class="grip"></div>
+  </div>
 
-  <script>
-    const CDN = "https://owlson.github.io/FigmaJumpBack/assets/icons";
-    const ICONS = {
-      vector:            `${CDN}/vector.svg`,
-      rectangle:         `${CDN}/vector.svg`,
-      ellipse:           `${CDN}/vector.svg`,
-      line:              `${CDN}/vector.svg`,
-      polygon:           `${CDN}/vector.svg`,
-      star:              `${CDN}/vector.svg`,
-      boolean_operation: `${CDN}/vector.svg`,
-      shape_with_text:   `${CDN}/vector.svg`,
-      auto_layout:       `${CDN}/autolayout.svg`,
-      autolayout:        `${CDN}/autolayout.svg`,
-      frame:             `${CDN}/frame.svg`,
-      page:              `${CDN}/page.svg`,
-      component:         `${CDN}/component.svg`,
-      component_set:     `${CDN}/component.svg`,
-      instance:          `${CDN}/instance.svg`,
-      group:             `${CDN}/group.svg`,
-      image:             `${CDN}/image.svg`,
-      text:              `${CDN}/text.svg`,
-      clear:             `${CDN}/clear.svg`,
-      "lock-closed":     `${CDN}/lock-closed.svg`,
-      "lock-open":       `${CDN}/lock-open.svg`,
-      close:             `${CDN}/close.svg`,
-      default:           `${CDN}/default.svg`
-    };
+<script>
+  // ---------- config ----------
+  var CDN = 'https://owlson.github.io/FigmaJumpBack/assets/icons';
+  var ICONS = {
+    frame: 'frame.svg',
+    page: 'page.svg',
+    component: 'component.svg',
+    component_set: 'component.svg',
+    instance: 'instance.svg',
+    group: 'group.svg',
+    text: 'text.svg',
+    boolean_operation: 'boolean_operation.svg',
+    vector: 'vector.svg',
+    rectangle: 'rectangle.svg',
+    ellipse: 'ellipse.svg',
+    line: 'line.svg',
+    polygon: 'polygon.svg',
+    star: 'star.svg',
+    shape_with_text: 'shape_with_text.svg',
+    autolayout: 'autolayout.svg',
+    slice: 'slice.svg',
+    default: 'default.svg',
+    ui_clear: 'clear.svg',
+    ui_lock_closed: 'lock-closed.svg',
+    ui_lock_open: 'lock-open.svg',
+    ui_close: 'close.svg'
+  };
 
-    function loadIcon(el) {
-      const key = el.getAttribute('data-icon');
-      const url = ICONS[key] || ICONS.default;
-      if (el.tagName.toLowerCase()==='img') {
-        el.src = url; return el;
-      }
-      const img = document.createElement('img');
-      for (const {name,value} of el.attributes) img.setAttribute(name,value);
-      img.src = url;
-      el.replaceWith(img);
-      return img;
+  // preload small UI icons
+  var lockImg = document.getElementById('lock-icon');
+  lockImg.src = CDN + '/' + ICONS.ui_lock_open;
+  document.querySelector('#btn-clear img').src = CDN + '/' + ICONS.ui_clear;
+
+  // ---------- state ----------
+  var navHistory = []; // избегаем конфликта с window.history
+  var isLocked = false;
+
+  // ---------- helpers ----------
+  function iconUrl(name) {
+    var file = ICONS[name] || ICONS.default;
+    return CDN + '/' + file;
+  }
+  function post(msg) { parent.postMessage({ pluginMessage: msg }, '*'); }
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  function getClosest(el, className) {
+    // fallback для окружений без Element.closest
+    if (el.closest) return el.closest('.' + className);
+    while (el && el !== document.body) {
+      if (el.classList && el.classList.contains(className)) return el;
+      el = el.parentNode;
     }
+    return null;
+  }
 
-    const send = (type,p={}) =>
-      parent.postMessage({ pluginMessage:{type,...p} }, '*');
+  // ---------- render ----------
+  function render() {
+    var list = document.getElementById('list');
+    list.innerHTML = '';
+    for (var i = 0; i < navHistory.length; i++) {
+      var e = navHistory[i];
 
-    let locked = false;
-    const lockBtn  = document.getElementById('lockBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const listEl   = document.getElementById('historyList');
-    const handle   = document.getElementById('resizeHandle');
+      var item = document.createElement('div');
+      item.className = 'item' + (i === 0 ? ' selected' : '');
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('data-index', String(i));
 
-    window.onload = () => {
-      loadIcon(lockBtn);
-      loadIcon(clearBtn);
-      send('getHistory');
-      send('getLockState');
-    };
+      var ic = document.createElement('span');
+      ic.className = 'ic';
+      ic.style.backgroundImage = "url('" + iconUrl(e.icon) + "')";
 
-    window.onmessage = e => {
-      const msg = e.data.pluginMessage;
-      if (msg.type==='history') {
-        listEl.innerHTML = '';
-        if (!msg.history.length) {
-          listEl.innerHTML = '<li><i>History is empty.</i></li>';
-        } else {
-          msg.history.forEach((entry,i)=>{
-            const li = document.createElement('li');
-            const btn = document.createElement('div');
-            btn.className='entry';
-            if (i===0) btn.classList.add('selected');
-            const typeKey = (entry.nodeType==='FRAME'&&entry.layoutMode!=='NONE')
-              ? 'autolayout'
-              : entry.nodeType.toLowerCase();
-            btn.innerHTML = `
-              <div class="entry-icon" data-icon="${typeKey}"></div>
-              <div class="entry-content">
-                <p class="entry-title">${entry.nodeName||''}</p>
-                <p class="entry-sub">${entry.pageName}</p>
-              </div>
-              <div class="remove-icon" data-icon="close" title="Remove entry"></div>`;
-            loadIcon(btn.querySelector('.entry-icon'));
-            loadIcon(btn.querySelector('.remove-icon'));
-            btn.onclick = () => send('navigateTo',{index:i});
-            btn.querySelector('.remove-icon').onclick = ev=>{
-              ev.stopPropagation();
-              send('removeEntry',{index:i});
-            };
-            li.appendChild(btn);
-            listEl.appendChild(li);
-          });
-        }
-      } else if (msg.type==='lockState') {
-        locked = msg.locked;
-        lockBtn.setAttribute('data-icon', locked?'lock-closed':'lock-open');
-        lockBtn.title = locked?'Unlock history':'Lock history';
-        loadIcon(lockBtn);
-      }
-    };
+      var titleWrap = document.createElement('div');
+      titleWrap.className = 'title-wrap';
 
-    lockBtn.onclick  = ()=>{locked=!locked; send('toggleLock',{locked});};
-    clearBtn.onclick = ()=>send('clearHistory');
+      var objName = document.createElement('div');
+      objName.className = 'obj-name';
+      objName.textContent = e.nodeName || e.nodeId;
+      objName.title = e.nodeName || e.nodeId;
 
-    let isResizing=false, startY, startH;
-    handle.addEventListener('mousedown',e=>{
-      isResizing=true; startY=e.clientY; startH=window.innerHeight;
-    });
-    window.addEventListener('mousemove',e=>{
-      if(!isResizing) return;
-      send('resize',{height:startH+(e.clientY-startY)});
-    });
-    window.addEventListener('mouseup',()=>{isResizing=false;});
-  </script>
+      var pageName = document.createElement('div');
+      pageName.className = 'page-name';
+      pageName.textContent = e.pageName || '';
+      pageName.title = e.pageName || '';
+
+      titleWrap.appendChild(objName);
+      titleWrap.appendChild(pageName);
+
+      var rm = document.createElement('div');
+      rm.className = 'remove';
+      rm.setAttribute('role', 'button');
+      rm.setAttribute('tabindex', '0');
+      rm.setAttribute('aria-label', 'Remove from history');
+      var rmIc = document.createElement('span');
+      rmIc.className = 'ic';
+      rmIc.style.backgroundImage = "url('" + iconUrl('ui_close') + "')";
+      rm.appendChild(rmIc);
+
+      item.appendChild(ic);
+      item.appendChild(titleWrap);
+      item.appendChild(rm);
+      list.appendChild(item);
+    }
+  }
+
+  // ---------- UI events ----------
+  document.getElementById('list').addEventListener('click', function(e) {
+    var removeBtn = getClosest(e.target, 'remove');
+    var item = getClosest(e.target, 'item');
+    if (!item) return;
+    var index = Number(item.getAttribute('data-index') || 0);
+    if (removeBtn) { post({ type: 'remove-entry', index: index }); return; }
+    post({ type: 'navigate', entry: navHistory[index] });
+  });
+
+  document.getElementById('list').addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var removeBtn = getClosest(e.target, 'remove');
+    var item = getClosest(e.target, 'item');
+    if (!item) return;
+    var index = Number(item.getAttribute('data-index') || 0);
+    e.preventDefault();
+    if (removeBtn) { post({ type: 'remove-entry', index: index }); }
+    else { post({ type: 'navigate', entry: navHistory[index] }); }
+  });
+
+  // lock / clear
+  var btnLock = document.getElementById('btn-lock');
+  btnLock.addEventListener('click', function() { post({ type: 'toggle-lock' }); });
+  btnLock.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); post({ type: 'toggle-lock' }); } });
+
+  var btnClear = document.getElementById('btn-clear');
+  btnClear.addEventListener('click', function() { post({ type: 'clear-history' }); });
+  btnClear.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); post({ type: 'clear-history' }); } });
+
+  // --- vertical resize (mouse + keyboard) ---
+  var resizeEl = document.getElementById('resize');
+  var resizing = false;
+  var startY = 0;
+  var startH = 0;
+
+  function onMouseMove(e) {
+    if (!resizing) return;
+    var dy = e.clientY - startY;
+    var nextH = Math.max(240, startH + dy);
+    parent.postMessage({ pluginMessage: { type: 'resize', height: nextH } }, '*');
+  }
+  function endResize() {
+    if (!resizing) return;
+    resizing = false;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', endResize);
+  }
+  resizeEl.addEventListener('mousedown', function(e) {
+    resizing = true;
+    startY = e.clientY;
+    startH = document.documentElement.clientHeight;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', endResize);
+  });
+  // keyboard resize (PageUp/PageDown, шаг 40px)
+  resizeEl.addEventListener('keydown', function(e) {
+    if (e.key !== 'PageDown' && e.key !== 'PageUp') return;
+    e.preventDefault();
+    var delta = e.key === 'PageDown' ? -40 : 40;
+    var nextH = Math.max(240, document.documentElement.clientHeight + delta);
+    parent.postMessage({ pluginMessage: { type: 'resize', height: nextH } }, '*');
+  });
+
+  // ---------- messages from main ----------
+  onmessage = function(event) {
+    var msg = event.data && event.data.pluginMessage;
+    if (!msg) return;
+
+    if (msg.type === 'history') {
+      navHistory = Array.isArray(msg.history) ? msg.history : [];
+      render();
+    }
+    if (msg.type === 'lock') {
+      isLocked = !!msg.locked;
+      btnLock.setAttribute('aria-pressed', String(isLocked));
+      lockImg.src = isLocked ? (CDN + '/' + ICONS.ui_lock_closed) : (CDN + '/' + ICONS.ui_lock_open);
+      btnLock.title = isLocked ? 'Unlock' : 'Lock';
+    }
+  };
+
+  // tell main we're ready
+  post({ type: 'ready' });
+</script>
 </body>
 </html>
