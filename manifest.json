@@ -1,14 +1,11 @@
 {
-  "name": "FigmaJumpBack",
-  "id": "1534139231378617797",
+  "name": "Figma JumpBack",
+  "id": "owlson.figmajumpback",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",
-  "editorType": ["figma"],
-  "documentAccess": "dynamic-page",
-  "networkAccess": {
-    "allowedDomains": [
-      "https://owlson.github.io"
-    ]
-  }
+  "editorType": ["figma", "figjam"],
+  "relaunchButtons": [
+    { "command": "open", "name": "JumpBack" }
+  ]
 }
